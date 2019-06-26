@@ -8,8 +8,8 @@ canvas.height=H;
 
 
 
-const cols=10;
-const rows=10;
+const cols=25;
+const rows=25;
 let grid= new Array(cols);
 const w= W/cols;
 const h= H/rows;
@@ -28,10 +28,17 @@ class Nodes{
         this.r=10;
         this.neighbours=[];
         this.previous= null;
+        this.wall=false;
+        if(Math.random()<0.25){
+            this.wall=true
+        }
     }
 
     draw(r,g,b){
         c.beginPath();
+        if(this.wall)
+            c.fillStyle='rgb(0,0,0)';
+        else
         c.fillStyle='rgb('+r+','+g+','+b+')';
         c.fillRect(this.i*w,this.j*h,w,h);
         c.fill();
@@ -44,6 +51,11 @@ class Nodes{
         if(i>0) this.neighbours.push(grid[i-1][j]);
         if(j<rows-1) this.neighbours.push(grid[i][j+1]);
         if(j>0) this.neighbours.push(grid[i][j-1]);
+
+        if(i>0 && j>0) this.neighbours.push(grid[i-1][j-1]);
+        if(i<cols-1 && j>0) this.neighbours.push(grid[i+1][j-1]);
+        if(i>0 && j<rows-1) this.neighbours.push(grid[i-1][j+1]);
+        if(i<cols-1 && j>0) this.neighbours.push(grid[i+1][j+1]);
 
     }
 }
@@ -69,6 +81,10 @@ let closeSet=[];
 let path=[];
 const start= grid[0][0];
 const end= grid[cols-1][rows-1];
+start.wall=false;
+end.wall=false;
+start.h= Math.sqrt(((end.i*end.i)+(end.j*end.j)));
+start.f=start.h;
 openSet.push(start);
 
 
@@ -92,15 +108,15 @@ function fillColor(){
 //  main algorithm
 
 function astar(){
-    
+    let lowest=0;
     if(openSet.length>0){
-        let lowest=0;
+      
         for (let i = 0; i < openSet.length; i++) {
            if(openSet[i].f<openSet[lowest].f){
                 lowest=i;
-                console.log("hello");
+                // console.log(lowest);
             }  
-            // console.log("hello"+i); 
+            console.log(i+"-"+openSet[i].f); 
         }
     
     
@@ -120,8 +136,8 @@ function astar(){
 
         let neighbours= current.neighbours;
         for (let i = 0; i < neighbours.length; i++) {
-            if(!closeSet.includes(neighbours[i])){
-                let tempG= current.g+1;
+            if(!closeSet.includes(neighbours[i]) && !neighbours[i].wall){
+                let tempG= current.g+1/w;
                 
                 if(openSet.includes(neighbours[i])){
                     if(tempG<neighbours[i].g){
