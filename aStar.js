@@ -1,3 +1,18 @@
+const cols=25;
+const rows=25;
+const wall=0.3;
+const diagonal=true;
+const ini={
+    x:0,
+    y:0
+};
+const fnl={
+    x:cols-1,
+    y:rows-1
+};
+
+
+
 const canvas= document.querySelector('canvas');
 let c= canvas.getContext('2d');
 // let W= window.innerWidth;
@@ -8,8 +23,7 @@ canvas.height=H;
 
 
 
-const cols=25;
-const rows=25;
+
 let grid= new Array(cols);
 const w= W/cols;
 const h= H/rows;
@@ -29,7 +43,7 @@ class Nodes{
         this.neighbours=[];
         this.previous= null;
         this.wall=false;
-        if(Math.random()<0.25){
+        if(Math.random()<wall){
             this.wall=true
         }
     }
@@ -51,12 +65,13 @@ class Nodes{
         if(i>0) this.neighbours.push(grid[i-1][j]);
         if(j<rows-1) this.neighbours.push(grid[i][j+1]);
         if(j>0) this.neighbours.push(grid[i][j-1]);
-
-        if(i>0 && j>0) this.neighbours.push(grid[i-1][j-1]);
-        if(i<cols-1 && j>0) this.neighbours.push(grid[i+1][j-1]);
-        if(i>0 && j<rows-1) this.neighbours.push(grid[i-1][j+1]);
-        if(i<cols-1 && j>0) this.neighbours.push(grid[i+1][j+1]);
-
+        
+        if(diagonal){
+            if(i>0 && j>0) this.neighbours.push(grid[i-1][j-1]);
+            if(i<cols-1 && j<cols-1) this.neighbours.push(grid[i+1][j+1]);
+            if(i<cols-1 && j>0) this.neighbours.push(grid[i+1][j-1]);
+            if(i>0 && j<rows-1) this.neighbours.push(grid[i-1][j+1]);
+        }
     }
 }
 
@@ -79,8 +94,8 @@ initiallise();
 let openSet=[];
 let closeSet=[];
 let path=[];
-const start= grid[0][0];
-const end= grid[cols-1][rows-1];
+const start= grid[ini.x][ini.y];
+const end= grid[fnl.x][fnl.y];
 start.wall=false;
 end.wall=false;
 start.h= Math.sqrt(((end.i*end.i)+(end.j*end.j)));
@@ -116,7 +131,7 @@ function astar(){
                 lowest=i;
                 // console.log(lowest);
             }  
-            console.log(i+"-"+openSet[i].f); 
+            // console.log(i+"-"+openSet[i].f); 
         }
     
     
@@ -128,7 +143,7 @@ function astar(){
                 path.push(temp.previous);
                 temp=temp.previous;
             }
-            console.log("done");
+            // console.log("done");
         }
 
         remove(openSet,current);
@@ -158,6 +173,7 @@ function astar(){
         }
     }else{
         console.log("no solution");
+        cancelAnimationFrame(animation);
     }
     
 }
@@ -173,6 +189,7 @@ function heuristic(a,b){
 function remove(array,el){
     for (let i = array.length; i>0; i--) {
         if(array[i]==el){
+            // console.log("removed");
             array.splice(i,1);
         }
         
@@ -184,11 +201,11 @@ function remove(array,el){
 //     j:1
 // }
 // console.log(heuristic(point,end));
-
+let animation;
 function animate(){
     c.clearRect(0,0,W,H); 
     fillColor();
     astar();
-    requestAnimationFrame(animate);
+    animation=requestAnimationFrame(animate);
 }
 animate();
